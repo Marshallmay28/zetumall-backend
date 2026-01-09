@@ -58,7 +58,7 @@ public class AdminController {
             List<StoreResponse> responses = stores.stream()
                     .map(StoreResponse::fromEntity)
                     .collect(Collectors.toList());
-            
+
             return ResponseEntity.ok(ApiResponse.success(responses));
         } catch (Exception e) {
             log.error("Error fetching pending stores", e);
@@ -75,15 +75,14 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<StoreResponse>> approveStore(
             @PathVariable String id,
-            @AuthenticationPrincipal SupabaseAuthenticatedUser authUser
-    ) {
+            @AuthenticationPrincipal SupabaseAuthenticatedUser authUser) {
         try {
             User admin = userRepository.findByAuthId(authUser.getId())
                     .orElseThrow(() -> new RuntimeException("Admin not found"));
-            
+
             Store store = adminService.approveStore(id, admin.getId());
             StoreResponse response = StoreResponse.fromEntity(store);
-            
+
             return ResponseEntity.ok(ApiResponse.success(response, "Store approved successfully"));
         } catch (RuntimeException e) {
             log.error("Store approval failed: {}", e.getMessage());
@@ -105,21 +104,20 @@ public class AdminController {
     public ResponseEntity<ApiResponse<StoreResponse>> rejectStore(
             @PathVariable String id,
             @RequestBody Map<String, String> request,
-            @AuthenticationPrincipal SupabaseAuthenticatedUser authUser
-    ) {
+            @AuthenticationPrincipal SupabaseAuthenticatedUser authUser) {
         try {
             User admin = userRepository.findByAuthId(authUser.getId())
                     .orElseThrow(() -> new RuntimeException("Admin not found"));
-            
+
             String reason = request.get("reason");
             if (reason == null || reason.isEmpty()) {
                 return ResponseEntity.badRequest()
                         .body(ApiResponse.error("Rejection reason is required"));
             }
-            
+
             Store store = adminService.rejectStore(id, reason, admin.getId());
             StoreResponse response = StoreResponse.fromEntity(store);
-            
+
             return ResponseEntity.ok(ApiResponse.success(response, "Store rejected"));
         } catch (RuntimeException e) {
             log.error("Store rejection failed: {}", e.getMessage());
@@ -141,16 +139,15 @@ public class AdminController {
     public ResponseEntity<ApiResponse<StoreResponse>> suspendStore(
             @PathVariable String id,
             @RequestBody Map<String, String> request,
-            @AuthenticationPrincipal SupabaseAuthenticatedUser authUser
-    ) {
+            @AuthenticationPrincipal SupabaseAuthenticatedUser authUser) {
         try {
             User admin = userRepository.findByAuthId(authUser.getId())
                     .orElseThrow(() -> new RuntimeException("Admin not found"));
-            
+
             String reason = request.get("reason");
             Store store = adminService.suspendStore(id, reason, admin.getId());
             StoreResponse response = StoreResponse.fromEntity(store);
-            
+
             return ResponseEntity.ok(ApiResponse.success(response, "Store suspended"));
         } catch (RuntimeException e) {
             log.error("Store suspension failed: {}", e.getMessage());
@@ -173,17 +170,19 @@ public class AdminController {
         try {
             List<User> users = adminService.getAllUsers();
             List<Map<String, Object>> userResponses = users.stream()
-                    .map(user -> Map.of(
-                        "id", user.getId(),
-                        "name", user.getName(),
-                        "email", user.getEmail(),
-                        "role", user.getRole().name(),
-                        "isActive", user.getIsActive(),
-                        "banReason", user.getBanReason() != null ? user.getBanReason() : "",
-                        "createdAt", user.getCreatedAt()
-                    ))
+                    .map(user -> {
+                        Map<String, Object> map = new java.util.HashMap<>();
+                        map.put("id", user.getId());
+                        map.put("name", user.getName());
+                        map.put("email", user.getEmail());
+                        map.put("role", user.getRole().name());
+                        map.put("isActive", user.getIsActive());
+                        map.put("banReason", user.getBanReason() != null ? user.getBanReason() : "");
+                        map.put("createdAt", user.getCreatedAt());
+                        return map;
+                    })
                     .collect(Collectors.toList());
-            
+
             return ResponseEntity.ok(ApiResponse.success(userResponses));
         } catch (Exception e) {
             log.error("Error fetching users", e);
@@ -201,20 +200,18 @@ public class AdminController {
     public ResponseEntity<ApiResponse<String>> toggleUserBan(
             @PathVariable String id,
             @RequestBody Map<String, Object> request,
-            @AuthenticationPrincipal SupabaseAuthenticatedUser authUser
-    ) {
+            @AuthenticationPrincipal SupabaseAuthenticatedUser authUser) {
         try {
             User admin = userRepository.findByAuthId(authUser.getId())
                     .orElseThrow(() -> new RuntimeException("Admin not found"));
-            
+
             Boolean ban = (Boolean) request.get("ban");
             String reason = (String) request.get("reason");
-            
+
             adminService.toggleUserBan(id, ban, reason, admin.getId());
-            
+
             return ResponseEntity.ok(ApiResponse.success(
-                ban ? "User banned successfully" : "User unbanned successfully"
-            ));
+                    ban ? "User banned successfully" : "User unbanned successfully"));
         } catch (RuntimeException e) {
             log.error("User ban toggle failed: {}", e.getMessage());
             return ResponseEntity.badRequest()
@@ -235,18 +232,17 @@ public class AdminController {
     public ResponseEntity<ApiResponse<ProductResponse>> moderateProduct(
             @PathVariable String id,
             @RequestBody Map<String, String> request,
-            @AuthenticationPrincipal SupabaseAuthenticatedUser authUser
-    ) {
+            @AuthenticationPrincipal SupabaseAuthenticatedUser authUser) {
         try {
             User admin = userRepository.findByAuthId(authUser.getId())
                     .orElseThrow(() -> new RuntimeException("Admin not found"));
-            
+
             String statusStr = request.get("status");
             Product.ProductStatus status = Product.ProductStatus.valueOf(statusStr.toUpperCase());
-            
+
             Product product = adminService.moderateProduct(id, status, admin.getId());
             ProductResponse response = ProductResponse.fromEntity(product);
-            
+
             return ResponseEntity.ok(ApiResponse.success(response, "Product moderated"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()

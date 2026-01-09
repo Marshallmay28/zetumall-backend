@@ -2,6 +2,9 @@ package com.zetumall.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import java.nio.charset.StandardCharsets;
+import javax.crypto.SecretKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -33,11 +36,12 @@ public class JwtTokenValidator {
      * Parse JWT token and extract claims
      */
     public Claims parseToken(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(supabaseProperties.getJwtSecret().getBytes())
+        SecretKey key = Keys.hmacShaKeyFor(supabaseProperties.getJwtSecret().getBytes(StandardCharsets.UTF_8));
+        return Jwts.parser()
+                .verifyWith(key)
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     /**
