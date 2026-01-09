@@ -37,7 +37,7 @@ zetumall-backend/
 
 ### Prerequisites
 
-- Java 17 or higher
+- Java 21 or higher
 - Gradle 8+ (or use included wrapper)
 - Access to Supabase PostgreSQL database
 
