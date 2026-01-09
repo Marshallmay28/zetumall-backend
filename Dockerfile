@@ -8,6 +8,5 @@ RUN gradle build -x test --no-daemon
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 COPY --from=builder /app/build/libs/zetumall-backend-1.0.0.jar app.jar
-ENV PORT=8080
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["sh", "-c", "java -Dserver.port=${PORT:-8080} -jar app.jar"]
