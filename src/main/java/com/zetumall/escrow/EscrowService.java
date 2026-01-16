@@ -1,10 +1,7 @@
 package com.zetumall.escrow;
 
-import com.zetumall.admin.audit.AdminAuditRepository;
 import com.zetumall.order.Order;
 import com.zetumall.order.OrderRepository;
-import com.zetumall.user.User;
-import com.zetumall.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

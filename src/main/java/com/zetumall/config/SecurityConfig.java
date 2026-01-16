@@ -29,9 +29,11 @@ public class SecurityConfig {
                                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                                 .authorizeHttpRequests(auth -> auth
                                                 // Public endpoints
-                                                .requestMatchers("/api/health", "/api/public/**").permitAll()
+                                                .requestMatchers("/", "/api", "/api/health", "/api/public/**",
+                                                                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
+                                                .permitAll()
                                                 // Admin endpoints
-                                                .requestMatchers("/api/admin/**")
+                                                .requestMatchers("/api/admin/**", "/actuator/**")
                                                 .hasAnyRole("ADMIN", "SUPER_ADMIN", "FINANCE_ADMIN", "SECURITY_ADMIN",
                                                                 "OPERATIONS_ADMIN", "SUPPORT_ADMIN")
                                                 // All other endpoints require authentication

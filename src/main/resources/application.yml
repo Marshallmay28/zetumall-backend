@@ -73,3 +73,15 @@ logging:
     org.springframework.web: DEBUG
     org.springframework.security: DEBUG
     org.hibernate: INFO
+
+# Actuator Endpoints (Monitoring)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,loggers
+  endpoint:
+    health:
+      show-details: always
+    metrics:
+      enabled: true
