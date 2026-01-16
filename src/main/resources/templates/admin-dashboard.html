@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZetuMall Backend - Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 16px;
+            padding: 24px 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #1a202c;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 12px;
+        }
+
+        .status-badge.up {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status-badge.down {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h3 {
+            font-size: 14px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .card .value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 8px;
+        }
+
+        .card .label {
+            font-size: 13px;
+            color: #a0aec0;
+        }
+
+        .metric-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+
+        .icon-purple { background: #e9d8fd; }
+        .icon-blue { background: #bee3f8; }
+        .icon-green { background: #c6f6d5; }
+        .icon-orange { background: #feebc8; }
+
+        .activity-list {
+            list-style: none;
+        }
+
+        .activity-item {
+            padding: 16px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-info {
+            flex: 1;
+        }
+
+        .activity-endpoint {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+
+        .activity-time {
+            font-size: 12px;
+            color: #a0aec0;
+        }
+
+        .activity-status {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-200 { background: #c6f6d5; color: #22543d; }
+        .status-201 { background: #c6f6d5; color: #22543d; }
+        .status-400 { background: #feebc8; color: #7c2d12; }
+        .status-500 { background: #fed7d7; color: #742a2a; }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            transition: transform 0.2s;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .refresh-btn:active {
+            transform: translateY(0);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1>
+                        🚀 ZetuMall Backend Dashboard
+                        <span class="status-badge up" id="statusBadge">UP</span>
+                    </h1>
+                    <p id="serviceInfo">Loading service information...</p>
+                </div>
+                <button class="refresh-btn" onclick="refreshDashboard()">
+                    🔄 Refresh
+                </button>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <div class="metric-icon icon-purple">⏱️</div>
+                <h3>Uptime</h3>
+                <div class="value" id="uptime">--</div>
+                <div class="label">Service running time</div>
+            </div>
+
+            <div class="card">
+                <div class="metric-icon icon-blue">💾</div>
+                <h3>Memory Usage</h3>
+                <div class="value" id="memoryUsage">--</div>
+                <div class="label" id="memoryLabel">of available memory</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="memoryProgress" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="metric-icon icon-green">📊</div>
+                <h3>CPU Usage</h3>
+                <div class="value" id="cpuUsage">--</div>
+                <div class="label">Current CPU utilization</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="cpuProgress" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="metric-icon icon-orange">🌐</div>
+                <h3>HTTP Requests</h3>
+                <div class="value" id="httpRequests">--</div>
+                <div class="label">Total requests served</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Recent API Activity</h3>
+            <ul class="activity-list" id="activityList">
+                <li class="loading">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 12px;">Loading activity...</p>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        async function fetchDashboardData() {
+            try {
+                // Fetch overview
+                const overviewRes = await fetch('/admin/dashboard/api/overview');
+                const overview = await overviewRes.json();
+                
+                document.getElementById('uptime').textContent = overview.uptime;
+                document.getElementById('statusBadge').textContent = overview.health;
+                document.getElementById('statusBadge').className = `status-badge ${overview.health.toLowerCase()}`;
+                document.getElementById('serviceInfo').textContent = 
+                    `${overview.serviceName} v${overview.version} • ${overview.environment}`;
+
+                // Fetch metrics
+                const metricsRes = await fetch('/admin/dashboard/api/metrics');
+                const metrics = await metricsRes.json();
+                
+                const memoryUsedMB = (metrics.memory.used / 1024 / 1024).toFixed(0);
+                const memoryMaxMB = (metrics.memory.max / 1024 / 1024).toFixed(0);
+                const memoryPercent = (metrics.memory.used / metrics.memory.max * 100).toFixed(1);
+                
+                document.getElementById('memoryUsage').textContent = `${memoryUsedMB} MB`;
+                document.getElementById('memoryLabel').textContent = `of ${memoryMaxMB} MB available`;
+                document.getElementById('memoryProgress').style.width = `${memoryPercent}%`;
+                
+                document.getElementById('cpuUsage').textContent = `${metrics.cpuUsage.toFixed(1)}%`;
+                document.getElementById('cpuProgress').style.width = `${metrics.cpuUsage}%`;
+                
+                document.getElementById('httpRequests').textContent = metrics.httpRequests.toLocaleString();
+
+                // Fetch activity
+                const activityRes = await fetch('/admin/dashboard/api/activity');
+                const activity = await activityRes.json();
+                
+                const activityList = document.getElementById('activityList');
+                if (activity.length === 0) {
+                    activityList.innerHTML = '<li class="activity-item">No recent activity</li>';
+                } else {
+                    activityList.innerHTML = activity.map(item => `
+                        <li class="activity-item">
+                            <div class="activity-info">
+                                <div class="activity-endpoint">${item.method} ${item.endpoint}</div>
+                                <div class="activity-time">${new Date(item.timestamp).toLocaleString()}</div>
+                            </div>
+                            <span class="activity-status status-${item.status}">${item.status}</span>
+                        </li>
+                    `).join('');
+                }
+
+            } catch (error) {
+                console.error('Error fetching dashboard data:', error);
+                document.getElementById('statusBadge').textContent = 'ERROR';
+                document.getElementById('statusBadge').className = 'status-badge down';
+            }
+        }
+
+        function refreshDashboard() {
+            fetchDashboardData();
+        }
+
+        // Initial load
+        fetchDashboardData();
+
+        // Auto-refresh every 30 seconds
+        setInterval(fetchDashboardData, 30000);
+    </script>
+</body>
+</html>

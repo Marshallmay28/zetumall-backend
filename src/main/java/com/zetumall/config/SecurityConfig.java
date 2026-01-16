@@ -29,10 +29,14 @@ public class SecurityConfig {
                                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                                 .authorizeHttpRequests(auth -> auth
                                                 // Public endpoints
-                                                .requestMatchers("/", "/api", "/api/health", "/api/public/**",
-                                                                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
+                                                .requestMatchers("/", "/api", "/api/health", "/api/public/**")
                                                 .permitAll()
-                                                // Admin endpoints
+                                                // Admin Dashboard & Swagger UI - Admin only
+                                                .requestMatchers("/admin/dashboard/**", "/v3/api-docs/**",
+                                                                "/swagger-ui/**", "/swagger-ui.html")
+                                                .hasAnyRole("ADMIN", "SUPER_ADMIN", "FINANCE_ADMIN", "SECURITY_ADMIN",
+                                                                "OPERATIONS_ADMIN", "SUPPORT_ADMIN")
+                                                // Admin API endpoints
                                                 .requestMatchers("/api/admin/**", "/actuator/**")
                                                 .hasAnyRole("ADMIN", "SUPER_ADMIN", "FINANCE_ADMIN", "SECURITY_ADMIN",
                                                                 "OPERATIONS_ADMIN", "SUPPORT_ADMIN")

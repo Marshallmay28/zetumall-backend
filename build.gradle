@@ -57,6 +57,9 @@ dependencies {
     // Monitoring & Metrics
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     
+    // Template Engine for Admin Dashboard
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    
     // API Documentation (Swagger/OpenAPI)
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
     
