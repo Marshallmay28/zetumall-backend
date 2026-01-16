@@ -257,4 +257,123 @@ public class AdminController {
                     .body(ApiResponse.error("Failed to moderate product"));
         }
     }
+
+    /**
+     * Lock an admin account (SUPER_ADMIN only)
+     * POST /api/admin/users/{id}/lock
+     */
+    @PostMapping("/users/{id}/lock")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<ApiResponse<String>> lockAdmin(
+            @PathVariable String id,
+            @RequestBody Map<String, String> request,
+            @AuthenticationPrincipal SupabaseAuthenticatedUser authUser) {
+        try {
+            User startAdmin = userRepository.findByAuthId(authUser.getId())
+                    .orElseThrow(() -> new RuntimeException("Admin not found"));
+
+            String reason = request.get("reason");
+            if (reason == null || reason.isEmpty()) {
+                return ResponseEntity.badRequest().body(ApiResponse.error("Reason is required"));
+            }
+
+            adminService.lockAdmin(id, reason, "UNKNOWN_IP", startAdmin.getId()); // In prod, extract IP from request
+            return ResponseEntity.ok(ApiResponse.success("Admin account locked"));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error locking admin", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error(e.getMessage()));
+        }
+    }
+
+    /**
+     * Unlock an admin account (SUPER_ADMIN only)
+     * POST /api/admin/users/{id}/unlock
+     */
+    @PostMapping("/users/{id}/unlock")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<ApiResponse<String>> unlockAdmin(
+            @PathVariable String id,
+            @RequestBody Map<String, String> request,
+            @AuthenticationPrincipal SupabaseAuthenticatedUser authUser) {
+        try {
+            User startAdmin = userRepository.findByAuthId(authUser.getId())
+                    .orElseThrow(() -> new RuntimeException("Admin not found"));
+
+            String reason = request.get("reason");
+            if (reason == null || reason.isEmpty()) {
+                return ResponseEntity.badRequest().body(ApiResponse.error("Reason is required"));
+            }
+
+            adminService.unlockAdmin(id, reason, "UNKNOWN_IP", startAdmin.getId());
+            return ResponseEntity.ok(ApiResponse.success("Admin account unlocked"));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error unlocking admin", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error(e.getMessage()));
+        }
+    }
+
+    /**
+     * Update Admin Email (SUPER_ADMIN only)
+     * POST /api/admin/users/{id}/email
+     */
+    @PostMapping("/users/{id}/email")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<ApiResponse<String>> updateAdminEmail(
+            @PathVariable String id,
+            @RequestBody Map<String, String> request,
+            @AuthenticationPrincipal SupabaseAuthenticatedUser authUser) {
+        try {
+            User startAdmin = userRepository.findByAuthId(authUser.getId())
+                    .orElseThrow(() -> new RuntimeException("Admin not found"));
+
+            String reason = request.get("reason");
+            String newEmail = request.get("email"); // Can be null (removal)
+
+            if (reason == null || reason.isEmpty()) {
+                return ResponseEntity.badRequest().body(ApiResponse.error("Reason is required"));
+            }
+
+            adminService.updateAdminEmail(id, newEmail, reason, "UNKNOWN_IP", startAdmin.getId());
+            return ResponseEntity.ok(ApiResponse
+                    .success(newEmail == null ? "Admin email removed (account disabled)" : "Admin email updated"));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error updating admin email", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error(e.getMessage()));
+        }
+    }
+
+    /**
+     * Reset Admin Password (SUPER_ADMIN only)
+     * POST /api/admin/users/{id}/reset-password
+     */
+    @PostMapping("/users/{id}/reset-password")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<ApiResponse<String>> resetAdminPassword(
+            @PathVariable String id,
+            @RequestBody Map<String, String> request,
+            @AuthenticationPrincipal SupabaseAuthenticatedUser authUser) {
+        try {
+            User startAdmin = userRepository.findByAuthId(authUser.getId())
+                    .orElseThrow(() -> new RuntimeException("Admin not found"));
+
+            String reason = request.get("reason");
+            if (reason == null || reason.isEmpty()) {
+                return ResponseEntity.badRequest().body(ApiResponse.error("Reason is required"));
+            }
+
+            adminService.resetAdminPassword(id, reason, "UNKNOWN_IP", startAdmin.getId());
+            return ResponseEntity.ok(ApiResponse.success("Admin password reset initiated"));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error resetting admin password", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error(e.getMessage()));
+        }
+    }
 }

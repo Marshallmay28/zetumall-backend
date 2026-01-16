@@ -43,6 +43,11 @@ supabase:
   jwt-secret: ${SUPABASE_JWT_SECRET}
   storage-bucket: stores
 
+# Escrow Configuration
+escrow:
+  api-key: ${ESCROW_API_KEY:T49Z05291768534257111Y70K}
+  provider: "ZETU_INTERNAL"
+
 # AI Service Configuration
 ai-service:
   url: ${AI_SERVICE_URL:http://localhost:8000}

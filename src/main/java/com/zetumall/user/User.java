@@ -18,7 +18,7 @@ import java.math.BigDecimal;
 public class User extends BaseEntity {
 
     @Column(name = "auth_id")
-    private String authId;  // Supabase Auth UUID
+    private String authId; // Supabase Auth UUID
 
     @Column(nullable = false)
     private String name;
@@ -73,6 +73,13 @@ public class User extends BaseEntity {
     private Boolean isTrustedSeller = false;
 
     public enum Role {
-        BUYER, SUPPLIER, ADMIN
+        BUYER,
+        SUPPLIER,
+        ADMIN, // Deprecated, migrate to specific roles
+        SUPER_ADMIN,
+        FINANCE_ADMIN,
+        SECURITY_ADMIN,
+        OPERATIONS_ADMIN,
+        SUPPORT_ADMIN
     }
 }

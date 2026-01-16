@@ -18,29 +18,28 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final SupabaseAuthenticationFilter supabaseAuthenticationFilter;
+        private final SupabaseAuthenticationFilter supabaseAuthenticationFilter;
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configure(http))
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .authorizeHttpRequests(auth -> auth
-                        // Public endpoints
-                        .requestMatchers("/api/health", "/api/public/**").permitAll()
-                        // Admin endpoints
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        // All other endpoints require authentication
-                        .anyRequest().authenticated()
-                )
-                .addFilterBefore(
-                        supabaseAuthenticationFilter,
-                        UsernamePasswordAuthenticationFilter.class
-                );
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                http
+                                .csrf(AbstractHttpConfigurer::disable)
+                                .cors(cors -> cors.configure(http))
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .authorizeHttpRequests(auth -> auth
+                                                // Public endpoints
+                                                .requestMatchers("/api/health", "/api/public/**").permitAll()
+                                                // Admin endpoints
+                                                .requestMatchers("/api/admin/**")
+                                                .hasAnyRole("ADMIN", "SUPER_ADMIN", "FINANCE_ADMIN", "SECURITY_ADMIN",
+                                                                "OPERATIONS_ADMIN", "SUPPORT_ADMIN")
+                                                // All other endpoints require authentication
+                                                .anyRequest().authenticated())
+                                .addFilterBefore(
+                                                supabaseAuthenticationFilter,
+                                                UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
-    }
+                return http.build();
+        }
 }
