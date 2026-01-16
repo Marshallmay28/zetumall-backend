@@ -64,9 +64,6 @@ public class PaymentService {
      */
     @Transactional
     public PaymentTransaction initiatePayment(PaymentRequest request, String userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
         Order order = orderRepository.findById(request.getOrderId())
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
