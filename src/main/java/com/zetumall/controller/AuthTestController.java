@@ -14,18 +14,6 @@ import java.util.Map;
 public class AuthTestController {
 
     /**
-     * Public endpoint to test if backend is running
-     */
-    @GetMapping("/health")
-    public Map<String, Object> health() {
-        Map<String, Object> response = new HashMap<>();
-        response.put("status", "UP");
-        response.put("service", "zetumall-backend");
-        response.put("timestamp", System.currentTimeMillis());
-        return response;
-    }
-
-    /**
      * Test endpoint to verify authentication
      * Requires any authenticated user
      */
