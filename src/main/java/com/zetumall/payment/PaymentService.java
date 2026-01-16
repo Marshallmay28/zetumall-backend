@@ -1,6 +1,5 @@
 package com.zetumall.payment;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zetumall.order.Order;
 import com.zetumall.order.OrderRepository;
 import com.zetumall.payment.dto.MpesaCallback;
@@ -14,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
+import jakarta.annotation.PostConstruct;
 
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -31,6 +31,12 @@ public class PaymentService {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final WebClient.Builder webClientBuilder;
+    private WebClient webClient;
+
+    @PostConstruct
+    public void init() {
+        this.webClient = webClientBuilder.build();
+    }
 
     @Value("${mpesa.consumer-key}")
     private String consumerKey;
@@ -71,7 +77,7 @@ public class PaymentService {
         transaction.setAmount(request.getAmount());
         transaction.setPhoneNumber(request.getPhoneNumber());
         transaction.setStatus(PaymentTransaction.PaymentStatus.PENDING);
-        
+
         // In a real scenario, we would generate this, but M-Pesa returns it
         // We'll save it first to get an ID if needed, or update later
         PaymentTransaction savedTx = paymentRepository.save(transaction);
@@ -83,8 +89,7 @@ public class PaymentService {
             // Prepare Password
             String timestamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
             String password = Base64.getEncoder().encodeToString(
-                    (shortcode + passkey + timestamp).getBytes(StandardCharsets.UTF_8)
-            );
+                    (shortcode + passkey + timestamp).getBytes(StandardCharsets.UTF_8));
 
             // Prepare Request Body
             Map<String, Object> body = new HashMap<>();
@@ -97,12 +102,11 @@ public class PaymentService {
             body.put("PartyB", shortcode);
             body.put("PhoneNumber", request.getPhoneNumber());
             body.put("CallBackURL", callbackUrl);
-            body.put("AccountReference", "ZetuMall Order " + order.getId());
+            body.put("AccountReference", order.getId().substring(0, Math.min(order.getId().length(), 12)));
             body.put("TransactionDesc", "Payment for order");
 
             // Make STK Push Request
-            Map response = webClientBuilder.build()
-                    .post()
+            Map response = webClient.post()
                     .uri(stkPushUrl)
                     .header("Authorization", "Bearer " + accessToken)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -119,7 +123,7 @@ public class PaymentService {
                 savedTx.setMerchantRequestId(merchantRequestId);
                 savedTx.setCheckoutRequestId(checkoutRequestId);
                 savedTx.setFailureReason("ResponseCode: " + responseCode); // Temp storage
-                
+
                 log.info("STK Push initiated: MerchantID={}, CheckoutID={}", merchantRequestId, checkoutRequestId);
             }
 
@@ -154,7 +158,7 @@ public class PaymentService {
         if (resultCode == 0) {
             // Success
             transaction.setStatus(PaymentTransaction.PaymentStatus.COMPLETED);
-            
+
             // Extract details metadata
             if (stkCallback.getCallbackMetadata() != null && stkCallback.getCallbackMetadata().getItem() != null) {
                 for (MpesaCallback.Item item : stkCallback.getCallbackMetadata().getItem()) {
@@ -166,10 +170,10 @@ public class PaymentService {
                     }
                 }
             }
-            
+
             // Update Order Status to PAID/CONFIRMED if needed logic here anywhere
             Order order = orderRepository.findById(transaction.getOrderId()).orElse(null);
-            if(order != null) {
+            if (order != null) {
                 order.setPaymentStatus("PAID");
                 orderRepository.save(order);
             }
@@ -190,8 +194,7 @@ public class PaymentService {
         String authString = consumerKey + ":" + consumerSecret;
         String encodedAuth = Base64.getEncoder().encodeToString(authString.getBytes(StandardCharsets.UTF_8));
 
-        Map response = webClientBuilder.build()
-                .get()
+        Map response = webClient.get()
                 .uri(authUrl)
                 .header("Authorization", "Basic " + encodedAuth)
                 .retrieve()
@@ -209,8 +212,8 @@ public class PaymentService {
      * Check transaction status
      */
     public PaymentTransaction getStatus(String orderId) {
-         return paymentRepository.findByOrderId(orderId).stream()
-                 .reduce((first, second) -> second) // Get latest
-                 .orElseThrow(() -> new RuntimeException("No payment found for this order"));
+        return paymentRepository.findByOrderId(orderId).stream()
+                .reduce((first, second) -> second) // Get latest
+                .orElseThrow(() -> new RuntimeException("No payment found for this order"));
     }
 }

@@ -33,14 +33,13 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<ApiResponse<OrderResponse>> createOrder(
             @RequestBody OrderCreateRequest request,
-            @AuthenticationPrincipal SupabaseAuthenticatedUser authUser
-    ) {
+            @AuthenticationPrincipal SupabaseAuthenticatedUser authUser) {
         try {
             User user = userRepository.findByAuthId(authUser.getId())
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
             Order order = orderService.createOrder(request, user.getId());
-            OrderResponse response = OrderResponse.fromEntity(order);
+            OrderResponse response = OrderResponse.fromEntity(order, orderService.getEscrowByOrderId(order.getId()));
 
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(ApiResponse.success(response, "Order created successfully with escrow protection"));
@@ -64,7 +63,7 @@ public class OrderController {
     public ResponseEntity<ApiResponse<OrderResponse>> getOrderById(@PathVariable String id) {
         try {
             Order order = orderService.getOrderById(id);
-            OrderResponse response = OrderResponse.fromEntity(order);
+            OrderResponse response = OrderResponse.fromEntity(order, orderService.getEscrowByOrderId(order.getId()));
 
             return ResponseEntity.ok(ApiResponse.success(response));
 
@@ -80,15 +79,14 @@ public class OrderController {
      */
     @GetMapping("/my-orders")
     public ResponseEntity<ApiResponse<List<OrderResponse>>> getMyOrders(
-            @AuthenticationPrincipal SupabaseAuthenticatedUser authUser
-    ) {
+            @AuthenticationPrincipal SupabaseAuthenticatedUser authUser) {
         try {
             User user = userRepository.findByAuthId(authUser.getId())
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
             List<Order> orders = orderService.getBuyerOrders(user.getId());
             List<OrderResponse> responses = orders.stream()
-                    .map(OrderResponse::fromEntity)
+                    .map(order -> OrderResponse.fromEntity(order, orderService.getEscrowByOrderId(order.getId())))
                     .collect(Collectors.toList());
 
             return ResponseEntity.ok(ApiResponse.success(responses));
@@ -107,15 +105,14 @@ public class OrderController {
     @GetMapping("/store/{storeId}")
     public ResponseEntity<ApiResponse<List<OrderResponse>>> getStoreOrders(
             @PathVariable String storeId,
-            @AuthenticationPrincipal SupabaseAuthenticatedUser authUser
-    ) {
+            @AuthenticationPrincipal SupabaseAuthenticatedUser authUser) {
         try {
             User user = userRepository.findByAuthId(authUser.getId())
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
             List<Order> orders = orderService.getStoreOrders(storeId, user.getId());
             List<OrderResponse> responses = orders.stream()
-                    .map(OrderResponse::fromEntity)
+                    .map(order -> OrderResponse.fromEntity(order, orderService.getEscrowByOrderId(order.getId())))
                     .collect(Collectors.toList());
 
             return ResponseEntity.ok(ApiResponse.success(responses));
@@ -139,8 +136,7 @@ public class OrderController {
     public ResponseEntity<ApiResponse<OrderResponse>> updateOrderStatus(
             @PathVariable String id,
             @RequestBody Map<String, String> request,
-            @AuthenticationPrincipal SupabaseAuthenticatedUser authUser
-    ) {
+            @AuthenticationPrincipal SupabaseAuthenticatedUser authUser) {
         try {
             User user = userRepository.findByAuthId(authUser.getId())
                     .orElseThrow(() -> new RuntimeException("User not found"));
@@ -149,7 +145,7 @@ public class OrderController {
             Order.OrderStatus status = Order.OrderStatus.valueOf(statusStr.toUpperCase());
 
             Order order = orderService.updateOrderStatus(id, status, user.getId());
-            OrderResponse response = OrderResponse.fromEntity(order);
+            OrderResponse response = OrderResponse.fromEntity(order, orderService.getEscrowByOrderId(order.getId()));
 
             return ResponseEntity.ok(ApiResponse.success(response, "Order status updated"));
 
@@ -175,8 +171,7 @@ public class OrderController {
     public ResponseEntity<ApiResponse<String>> releaseEscrow(
             @PathVariable String id,
             @RequestBody Map<String, String> request,
-            @AuthenticationPrincipal SupabaseAuthenticatedUser authUser
-    ) {
+            @AuthenticationPrincipal SupabaseAuthenticatedUser authUser) {
         try {
             User user = userRepository.findByAuthId(authUser.getId())
                     .orElseThrow(() -> new RuntimeException("User not found"));

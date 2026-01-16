@@ -48,7 +48,7 @@ public class OrderService {
         for (OrderCreateRequest.OrderItemRequest item : request.getItems()) {
             Product product = productRepository.findById(item.getProductId())
                     .orElseThrow(() -> new RuntimeException("Product not found: " + item.getProductId()));
-            
+
             BigDecimal itemTotal = BigDecimal.valueOf(product.getPrice())
                     .multiply(BigDecimal.valueOf(item.getQuantity()));
             total = total.add(itemTotal);
@@ -72,7 +72,7 @@ public class OrderService {
         createEscrowForOrder(savedOrder, store);
 
         log.info("Order created: {} for buyer: {}", savedOrder.getId(), userId);
-        
+
         return savedOrder;
     }
 
@@ -97,12 +97,12 @@ public class OrderService {
         escrow.setSellerAmount(sellerAmount);
         escrow.setStatus(EscrowTransaction.EscrowStatus.HELD);
         escrow.setHeldAt(LocalDateTime.now());
-        escrow.setExpiresAt(LocalDateTime.now().plusDays(14));  // 14 days to deliver
+        escrow.setExpiresAt(LocalDateTime.now().plusDays(14)); // 14 days to deliver
         escrow.setPaymentMethod(order.getPaymentMethod());
         escrow.setReleaseCode(releaseCode);
 
         escrowRepository.save(escrow);
-        
+
         log.info("Escrow created for order: {} with release code", order.getId());
     }
 
@@ -142,6 +142,13 @@ public class OrderService {
         orderRepository.save(order);
 
         log.info("Escrow released for order: {}", orderId);
+    }
+
+    /**
+     * Get escrow transaction for order
+     */
+    public EscrowTransaction getEscrowByOrderId(String orderId) {
+        return escrowRepository.findByOrderId(orderId).orElse(null);
     }
 
     /**
