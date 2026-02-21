@@ -53,6 +53,16 @@ ai-service:
   url: ${AI_SERVICE_URL:http://localhost:8000}
   timeout: 30000
 
+# M-Pesa Configuration
+mpesa:
+  consumer-key: ${MPESA_CONSUMER_KEY}
+  consumer-secret: ${MPESA_CONSUMER_SECRET}
+  passkey: ${MPESA_PASSKEY}
+  shortcode: ${MPESA_SHORTCODE}
+  callback-url: ${MPESA_CALLBACK_URL}
+  auth-url: ${MPESA_AUTH_URL}
+  stk-push-url: ${MPESA_STK_PUSH_URL}
+
 # CORS Configuration
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
