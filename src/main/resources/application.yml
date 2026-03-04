@@ -48,10 +48,11 @@ escrow:
   api-key: ${ESCROW_API_KEY:T49Z05291768534257111Y70K}
   provider: "ZETU_INTERNAL"
 
-# AI Service Configuration
-ai-service:
-  url: ${AI_SERVICE_URL:http://localhost:8000}
-  timeout: 30000
+# AI Service Configuration (Google Gemini)
+ai:
+  gemini:
+    api-key: ${GEMINI_API_KEY}
+    url: https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent
 
 # M-Pesa Configuration
 mpesa:
