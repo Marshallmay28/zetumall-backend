@@ -39,6 +39,7 @@ public class UserController {
                 "email", user.getEmail(),
                 "image", user.getImage() != null ? user.getImage() : "",
                 "role", user.getRole().name(),
+                "membershipTier", user.getMembershipTier().name(),
                 "country", user.getCountry(),
                 "currency", user.getCurrency(),
                 "isActive", user.getIsActive(),

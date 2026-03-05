@@ -39,6 +39,10 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private Role role = Role.BUYER;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "membership_tier", nullable = false)
+    private MembershipTier membershipTier = MembershipTier.FREE;
+
     @Column
     private String country = "KEN";
 
