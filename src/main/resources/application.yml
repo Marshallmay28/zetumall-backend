@@ -20,6 +20,7 @@ spring:
     properties:
       hibernate:
         default_schema: public
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
     show-sql: false
   
