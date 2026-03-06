@@ -1,6 +1,8 @@
 spring:
   application:
     name: zetumall-core-api
+  main:
+    lazy-initialization: true
   
   # Database Configuration (Supabase PostgreSQL)
   datasource:
@@ -30,7 +32,7 @@ spring:
 
 # Server Configuration
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${PORT:8080}
   error:
     include-message: always
     include-stacktrace: on_param
