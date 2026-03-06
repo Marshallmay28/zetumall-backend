@@ -2,10 +2,7 @@ package com.zetumall.order;
 
 import com.zetumall.product.Product;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.io.Serializable;
 
@@ -45,6 +42,7 @@ public class OrderItem {
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
+    @EqualsAndHashCode
     public static class OrderItemId implements Serializable {
         private String orderId;
         private String productId;
